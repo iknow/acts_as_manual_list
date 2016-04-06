@@ -1,4 +1,4 @@
-require 'active_support/all'
+require 'active_support/concern'
 require 'active_record'
 
 require 'lazily'
@@ -16,60 +16,91 @@ module ActsAsManualList
   module ClassMethods
     using IknowListUtils
 
-    def interleaved_positions(elements, in_list: nil, position: nil)
-      in_list  ||= ->(_) { false }
-      position ||= ->(x) { x.send(:position) }
 
+    # TODO: inject something like this into the scope class
+    # def reorder_#{association}(children)
+    #   ChildType.set_positions(self, children)
+    # end
+
+    def set_positions(parent, children)
+      # TODO: validate that the children are all children of the parent.
+
+      # Optimization: if a child record is already `changed?`, then it's going
+      # to be written no matter what. If we don't consider changed records for
+      # selecting stable positions (i.e. ignore their previous `position` field)
+      # we can maximize the chance of avoiding updates to otherwise untouched
+      # rows.
+      get_pos = ->(el) do
+        if el.changed?
+          nil
+        else
+          el.public_send(acts_as_list_attribute)
+        end
+      end
+
+      set_pos = ->(el, p) { el.public_send(:"#{acts_as_list_attribute}=", p) }
+
+      update_positions(children, position_getter: get_pos, position_setter: set_pos)
+    end
+
+    private
+
+    # Takes an list of elements in a desired order. Elements have an inherent
+    # float position, obtainable via `position_getter`, which may be nil if the
+    # element previously was not a list member. For each element whose position
+    # is not in order (i.e. between the positions of its neighbours), calls
+    # `position_setter` to update the position to a new float value.
+    def update_positions(elements,
+                         position_getter: ->(el   ){ el.send(:position) },
+                         position_setter: ->(el, v){ el.send(:position=, v) })
+
+      # calculate index for each previously existing position
       position_indices = elements
                            .lazy
                            .with_index
-                           .select { |c, _| in_list.(c)           }
-                           .map    { |c, i| [position.(c), i] }
+                           .map    { |el, i| [position_getter.(el), i] }
+                           .reject { |p, i| p.nil? }
                            .to_a
 
       # TODO we haven't dealt with collisions
 
-      stable_positions = Lazily.concat([[nil, -1]],
-                                       position_indices.longest_rising_sequence_by(&:first),
-                                       [[nil, elements.length]])
+      # Calculate stable points in the element array which don't need to have
+      # positions updated:
+      # * before the beginning of the ordered subsequence
+      # * a subsequence of elements which are already in order
+      # * after the end of the ordered subsequence.
+      stable_position_indices = Lazily.concat([[nil, -1]],
+                                              position_indices.longest_rising_sequence_by(&:first),
+                                              [[nil, elements.length]])
 
-      stable_positions.each_cons(2) do |(start_pos, start_index), (end_pos, end_index)|
+      # For each possible range of indices that are not stable (i.e. for every
+      # adjacent pair of stable indices), assign new positions distributed
+      # between the stable positions.
+      stable_position_indices.each_cons(2) do |(start_pos, start_index), (end_pos, end_index)|
         range = (start_index + 1)..(end_index - 1)
         next unless range.size > 0
 
-        positions =
+        new_positions =
           case
           when start_pos.nil? && end_pos.nil?
+            # all elements are unpositioned, assign sequentially
             range
-          when start_pos.nil? # before first fixed element
+          when start_pos.nil?
+            # before first fixed element
             range.size.downto(1).map { |i| end_pos - i }
-          when end_pos.nil? # after
+          when end_pos.nil?
+            # after last fixed element
             1.upto(range.size).map { |i| start_pos + i }
           else
             delta = (end_pos - start_pos) / (range.size + 1)
             1.upto(range.size).map { |i| start_pos + delta * i }
           end
 
-        positions.each.with_index(1) do |pos, i|
-          yield elements[i + start_index], pos
+        new_positions.each.with_index(1) do |new_pos, offset|
+          position_setter.(elements[start_index + offset], new_pos)
         end
       end
     end
-
-    def set_positions(parent, children, in_list:)
-      get_pos = :"#{acts_as_list_attribute}"
-      set_pos = :"#{acts_as_list_attribute}="
-
-      # By considering stable positions only from existing children we favor them as stable positions. Other children
-      # will have their parent pointer changed, so they're being modified anyway.
-
-      interleaved_positions(children,
-                            in_list: in_list,
-                            position: ->(x) { x.public_send(get_pos) }) do |c, pos|
-        c.public_send(set_pos, pos)
-      end
-    end
-
   end
 
   # TODO... list motion, append/prepend/etc
@@ -92,6 +123,14 @@ module ActsAsListBase
 end
 
 
-ActiveRecord::Base.send(:include, ActsAsListBase)
-
-# Child.remove_many(parent_instance, indexes..)
+if defined?(Rails::Railtie)
+  class Railtie < Rails::Railtie
+    initializer 'acts_as_manual_list.insert_into_active_record' do
+      ActiveSupport.on_load :active_record do
+        ActiveRecord::Base.send(:include, ActsAsListBase)
+      end
+    end
+  end
+else
+  ActiveRecord::Base.send(:include, ActsAsListBase) if defined?(ActiveRecord)
+end

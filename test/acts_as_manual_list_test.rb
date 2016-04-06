@@ -5,7 +5,7 @@ require 'acts_as_manual_list'
 
 require 'minitest/autorun'
 
-ActiveRecord::Base.logger = Logger.new(STDOUT)
+# ActiveRecord::Base.logger = Logger.new(STDOUT)
 ActiveRecord::Base.establish_connection(adapter: 'sqlite3', database: ':memory:')
 ActiveSupport::TestCase.test_order = :random
 
@@ -54,38 +54,37 @@ class ActsAsManualList::Test < ActiveSupport::TestCase
   test "list positioning updates" do
     # We use negative to designate new, and abs() to derive position
     list = [
-      {:pos => 8}, # prepended, added at -1.0
-      {:pos => 9}, # prepended, added at  0.0
-      {:pos => 1, :in_list => true}, # stable, remains at   1.0
-      {:pos => 10}, # insert, at           1.25
-      {:pos => 10, :in_list => true}, # reordered to         1.50
-      {:pos => 11, :in_list => true}, # reordered to         1.75
-      {:pos => 2, :in_list => true}, # stable, remains at   2.0
-      {:pos => 3, :in_list => true}, # stable, remains at   3.0
-      {:pos => 4, :in_list => true}, # stable, remains at   4.0
-      {:pos => 11}, # appended, added at   5.0
-      {:pos => 12}, # appended, added at   6.0
+      {id: 1},            # prepended, added at -1.0
+      {id: 2},            # prepended, added at  0.0
+      {id: 3, pos: 1.0},  # stable, remains at   1.0
+      {id: 4},            # insert, at           1.25
+      {id: 5, pos: 10.0}, # reordered to         1.50
+      {id: 6, pos: 11.0}, # reordered to         1.75
+      {id: 7, pos: 2.0},  # stable, remains at   2.0
+      {id: 8, pos: 3.0},  # stable, remains at   3.0
+      {id: 9, pos: 4.0},  # stable, remains at   4.0
+      {id: 10},           # appended, added at   5.0
+      {id: 11},           # appended, added at   6.0
     ]
 
-    Child.interleaved_positions(
-      list,
-      in_list:  ->(x){ x[:in_list] },
-      position: ->(x){ x[:pos].to_f }) { |x, y| x[:to] = y}
+    Child.send(:update_positions,
+               list,
+               position_getter: ->(x){ x[:pos] },
+               position_setter: ->(x, y){ x[:pos] = y })
 
     assert_equal([
-                   {:pos => 8, :to => -1.0},
-                   {:pos => 9, :to => 0.0},
-                   {:pos => 1},
-                   {:pos => 10, :to => 1.25},
-                   {:pos => 10, :to => 1.50},
-                   {:pos => 11, :to => 1.75},
-                   {:pos => 2},
-                   {:pos => 3},
-                   {:pos => 4},
-                   {:pos => 11, :to => 5.0},
-                   {:pos => 12, :to => 6.0},
+                   { id: 1, pos: -1.0 },
+                   { id: 2, pos: 0.0 },
+                   { id: 3, pos: 1},
+                   { id: 4, pos: 1.25 },
+                   { id: 5, pos: 1.50 },
+                   { id: 6, pos: 1.75 },
+                   { id: 7, pos: 2 },
+                   { id: 8, pos: 3 },
+                   { id: 9, pos: 4 },
+                   { id: 10, pos: 5.0 },
+                   { id: 11, pos: 6.0 },
                  ],
-                 list.map{|x| x.delete(:in_list)})
+                 list)
   end
 end
-
