@@ -67,10 +67,10 @@ class ActsAsManualList::Test < ActiveSupport::TestCase
       {id: 11},           # appended, added at   6.0
     ]
 
-    Child.send(:update_positions,
-               list,
-               position_getter: ->(x){ x[:pos] },
-               position_setter: ->(x, y){ x[:pos] = y })
+    ActsAsManualList.update_positions(
+      list,
+      position_getter: ->(x){ x[:pos] },
+      position_setter: ->(x, y){ x[:pos] = y })
 
     assert_equal([
                    { id: 1, pos: -1.0 },
