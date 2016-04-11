@@ -30,7 +30,7 @@ module ActsAsManualList
     # * after the end of the ordered subsequence.
     stable_position_indices = Lazily.concat([[nil, -1]],
                                             position_indices.longest_rising_sequence_by(&:first),
-                                            [[nil, elements.length]])
+                                            [[nil, elements.size]])
 
     # For each possible range of indices that are not stable (i.e. for every
     # adjacent pair of stable indices), assign new positions distributed
