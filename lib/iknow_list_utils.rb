@@ -42,7 +42,7 @@ module IknowListUtils
     def longest_rising_sequence(&compare)
       # https://en.wikipedia.org/wiki/Longest_increasing_subsequence
 
-      compare ||= ->(x,y) { self[x] <=> self[y] }
+      compare ||= ->(x,y) { x <=> y }
 
       preds = Array.new(self.length)
       ends = Array.new(self.length + 1)
