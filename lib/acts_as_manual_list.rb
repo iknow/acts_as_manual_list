@@ -4,14 +4,17 @@ require 'iknow_list_utils'
 module ActsAsManualList
   using IknowListUtils
 
+  POSITION_GETTER = ->(el   ){ el.send(:position) }
+  POSITION_SETTER = ->(el, v){ el.send(:position=, v) }
+
   # Takes an list of elements in a desired order. Elements have an inherent
   # float position, obtainable via `position_getter`, which may be nil if the
   # element previously was not a list member. For each element whose position
   # is not in order (i.e. between the positions of its neighbours), calls
   # `position_setter` to update the position to a new float value.
   def self.update_positions(elements,
-                            position_getter: ->(el   ){ el.send(:position) },
-                            position_setter: ->(el, v){ el.send(:position=, v) })
+                            position_getter: POSITION_GETTER,
+                            position_setter: POSITION_SETTER)
 
     # calculate index for each previously existing position
     position_indices = elements
@@ -39,26 +42,31 @@ module ActsAsManualList
       range = (start_index + 1)..(end_index - 1)
       next unless range.size > 0
 
-      new_positions =
-        case
-        when start_pos.nil? && end_pos.nil?
-          # all elements are unpositioned, assign sequentially
-          range
-        when start_pos.nil?
-          # before first fixed element
-          range.size.downto(1).map { |i| end_pos - i }
-        when end_pos.nil?
-          # after last fixed element
-          1.upto(range.size).map { |i| start_pos + i }
-        else
-          delta = (end_pos - start_pos) / (range.size + 1)
-          1.upto(range.size).map { |i| start_pos + delta * i }
-        end
+      new_positions = select_positions(start_pos, end_pos, range.size)
 
       new_positions.each.with_index(1) do |new_pos, offset|
         position_setter.(elements[start_index + offset], new_pos)
       end
     end
+  end
+
+  # Select `count` positions in order between the provided `start_pos` and `end_pos`
+  def self.select_positions(start_pos, end_pos, count)
+    case
+    when start_pos.nil? && end_pos.nil?
+      # all elements are unpositioned, assign sequentially
+      1.upto(count).map(&:to_f)
+    when start_pos.nil?
+      # before first fixed element
+      count.downto(1).map { |i| end_pos - i }
+    when end_pos.nil?
+      # after last fixed element
+      1.upto(count).map { |i| start_pos + i }
+    else
+      delta = (end_pos - start_pos) / (count + 1)
+      1.upto(count).map { |i| start_pos + (delta * i) }
+    end
+
   end
 end
 
