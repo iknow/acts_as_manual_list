@@ -7,12 +7,12 @@ require "acts_as_manual_list/version"
 Gem::Specification.new do |s|
   s.name        = "acts_as_manual_list"
   s.version     = ActsAsManualList::VERSION
-  s.authors     = ["Andrew Childs"]
-  s.email       = ["andrew.childs@bibo.com.ph"]
+  s.authors     = ["iKnow Team"]
+  s.email       = ["dev@iknow.jp"]
   s.homepage    = ""
   s.summary     = "Barebones acts_as_list"
   s.description = ""
-  s.license     = "Proprietary"
+  s.license     = "MIT"
 
   s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]
 
