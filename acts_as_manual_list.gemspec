@@ -16,12 +16,14 @@ Gem::Specification.new do |s|
 
   s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]
 
-  s.add_dependency "activerecord"
-  s.add_dependency "activesupport"
-  s.add_dependency "lazily"
+  s.add_dependency "activerecord", ">= 5.0.0", "< 5.2"
+  s.add_dependency "activesupport", ">= 5.0.0", "< 5.2"
+  s.add_dependency "lazily", "~> 0.2.1"
 
   s.add_development_dependency "sqlite3"
   s.add_development_dependency "minitest"
   s.add_development_dependency "rake"
   s.add_development_dependency "byebug"
+  s.add_development_dependency "appraisal"
+
 end

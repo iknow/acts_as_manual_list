@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/iknow/acts_as_manual_list.svg?branch=master)](https://travis-ci.org/iknow/acts_as_manual_list)
+
 # ActsAsManualList
 Short description and motivation.
 
