@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'active_support/concern'
 require 'active_record'
 
@@ -16,7 +18,7 @@ module ActsAsManualList::ListMember
     #   ChildType.set_positions(self, children)
     # end
 
-    def set_positions(parent, children)
+    def set_positions(_parent, children)
       # TODO: validate that the children are all children of the parent.
 
       # Optimization: if a child record is already `changed?`, then it's going
@@ -42,5 +44,4 @@ module ActsAsManualList::ListMember
   # append from list
   # insert at position
   # remove from list # will need to move from list to list
-
 end

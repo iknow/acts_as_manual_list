@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'active_support'
 require 'active_record'
 
@@ -45,15 +47,14 @@ end
 class ActsAsManualList::Test < ActiveSupport::TestCase
   Element = Struct.new(:id, :position)
 
-  test "truth" do
+  test 'truth' do
     assert_kind_of Module, ActsAsManualList
   end
 
-  test "remove_many" do
-
+  test 'remove_many' do
   end
 
-  test "list initialization" do
+  test 'list initialization' do
     list = 1.upto(3).map { |i| Element.new(i) }
 
     ActsAsManualList.update_positions(list)
@@ -61,13 +62,13 @@ class ActsAsManualList::Test < ActiveSupport::TestCase
     expected = [
       Element.new(1, 1.0),
       Element.new(2, 2.0),
-      Element.new(3, 3.0)
+      Element.new(3, 3.0),
     ]
 
-    assert_equal(expected,list)
+    assert_equal(expected, list)
   end
 
-  test "list positioning updates" do
+  test 'list positioning updates' do
     # We use negative to designate new, and abs() to derive position
     list = [
       Element.new(1),       # prepended, added at -1.0
@@ -99,25 +100,25 @@ class ActsAsManualList::Test < ActiveSupport::TestCase
       Element.new(11, 6.0),
     ]
 
-    assert_equal(expected,list)
+    assert_equal(expected, list)
   end
 
-  test "setters and getters" do
+  test 'setters and getters' do
     list = [
-      {id: 1 },            # prepended, added at -1.0
-      {id: 2 },            # prepended, added at  0.0
-      {id: 3, pos: 1.0 },  # stable, remains at   1.0
+      { id: 1 },            # prepended, added at -1.0
+      { id: 2 },            # prepended, added at  0.0
+      { id: 3, pos: 1.0 },  # stable, remains at   1.0
     ]
 
     ActsAsManualList.update_positions(
       list,
-      position_getter: ->(x){ x[:pos] },
-      position_setter: ->(x, y){ x[:pos] = y })
+      position_getter: ->(x) { x[:pos] },
+      position_setter: ->(x, y) { x[:pos] = y })
 
     expected = [
       { id: 1, pos: -1.0 },
       { id: 2, pos: 0.0 },
-      { id: 3, pos: 1}
+      { id: 3, pos: 1 },
     ]
     assert_equal(expected, list)
   end

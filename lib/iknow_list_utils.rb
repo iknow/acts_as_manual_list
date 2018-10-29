@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module IknowListUtils
   refine Array do
     def bsearch_max(min = nil, max = nil)
@@ -37,12 +39,12 @@ module IknowListUtils
       lo
     end
 
-    # TODO make this operate on Enumerables instead of directly accessible
+    # TODO: make this operate on Enumerables instead of directly accessible
     # collections.
     def longest_rising_sequence(&compare)
       # https://en.wikipedia.org/wiki/Longest_increasing_subsequence
 
-      compare ||= ->(x,y) { x <=> y }
+      compare ||= ->(x, y) { x <=> y }
 
       preds = Array.new(self.length)
       ends = Array.new(self.length + 1)

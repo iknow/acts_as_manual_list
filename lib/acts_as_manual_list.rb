@@ -24,10 +24,10 @@ module ActsAsManualList
                        .lazy
                        .with_index
                        .map    { |el, i| [position_getter.(el), i] }
-                       .reject { |p, i| p.nil? }
+                       .reject { |p, _i| p.nil? }
                        .to_a
 
-    # TODO we haven't dealt with collisions
+    # TODO: we haven't dealt with collisions
 
     # Calculate stable points in the element array which don't need to have
     # positions updated:
