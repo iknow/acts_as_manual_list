@@ -3,7 +3,7 @@
 source "https://rubygems.org"
 
 gem "sqlite3", group: [:test]
-gem "activerecord", "~> 5.2.0"
-gem "activesupport", "~> 5.2.0"
+gem "activerecord", "~> 6.0.0.beta"
+gem "activesupport", "~> 6.0.0.beta"
 
 gemspec path: "../"
