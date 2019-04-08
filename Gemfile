@@ -14,3 +14,6 @@ gemspec
 
 # To use a debugger
 # gem 'byebug', group: [:development, :test]
+
+# Test metadata collection for circleci
+gem 'minitest-ci'
