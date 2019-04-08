@@ -21,9 +21,14 @@ executors:
 jobs:
   test:
     parameters:
-      ex:
-        type: executor
-    executor: << parameters.ex >>
+      ruby-version:
+        type: string
+      gemfile:
+        type: string
+    executor:
+      name: ruby
+      ruby-version: << parameters.ruby-version >>
+      gemfile: << parameters.gemfile >>
     parallelism: 1
     steps:
       - checkout
@@ -39,7 +44,7 @@ jobs:
 
       - restore_cache:
           keys:
-            - acts_as_manual_list-{{ checksum "/tmp/gem-lock" }}
+            - acts_as_manual_list-<< parameters.ruby-version >>-{{ checksum "/tmp/gem-lock" }}
             - acts_as_manual_list-
 
       - run:
@@ -47,7 +52,7 @@ jobs:
           command: bundle check || bundle install
 
       - save_cache:
-          key: acts_as_manual_list-{{ checksum "/tmp/gem-lock" }}
+          key: acts_as_manual_list-<< parameters.ruby-version >>-{{ checksum "/tmp/gem-lock" }}
           paths:
             - vendor/bundle
 
@@ -80,16 +85,12 @@ workflows:
     jobs:
       - test:
           name: 'ruby 2.6 rails 5.2'
-          ex:
-            name: ruby
-            ruby-version: "2.6"
-            gemfile: gemfiles/rails_5_2.gemfile
+          ruby-version: "2.6"
+          gemfile: gemfiles/rails_5_2.gemfile
       - test:
           name: 'ruby 2.6 rails 6.0'
-          ex:
-            name: ruby
-            ruby-version: "2.6"
-            gemfile: gemfiles/rails_6_0_beta.gemfile
+          ruby-version: "2.6"
+          gemfile: gemfiles/rails_6_0_beta.gemfile
       - publish:
           filters:
             branches:
