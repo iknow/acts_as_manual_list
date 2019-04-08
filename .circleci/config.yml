@@ -76,8 +76,8 @@ jobs:
        - run:
            name: Publish to Rubygems
            command: |
-             gem build persistent_enum.gemspec
-             gem push persistent_enum-*.gem
+             gem build acts_as_manual_list.gemspec
+             gem push acts_as_manual_list-*.gem
 
 workflows:
   version: 2.1
