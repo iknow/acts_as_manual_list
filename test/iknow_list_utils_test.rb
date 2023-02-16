@@ -2,7 +2,7 @@
 
 require 'iknow_list_utils'
 
-require 'minitest/autorun'
+require_relative './test_helper.rb'
 
 class TestBSearch < Minitest::Test
   using IknowListUtils
